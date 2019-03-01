@@ -1,5 +1,10 @@
-import express from 'express';
-const app = express();
+import Koa from 'koa';
+const app = new Koa();
+
+const serve = require('koa-static'); 
+const Router = require('koa-router');
+const router = new Router();
+
 import Home from '../containers/Home/index';
 import React from 'react';
 import {renderToString} from 'react-dom/server';
@@ -11,15 +16,15 @@ import Routes from '../Routes';
 // 服务器端渲染
 // react代码在服务器端渲染，消耗的是服务器端的性能
 
-app.use(express.static('public'));
+app.use(serve('public'));
 
-app.get('/', function(req, res) {
+router.get('/', function(ctx) {
   const content = renderToString((
-    <StaticRouter location={req.path} context={{}}>
+    <StaticRouter location={ctx.path} context={{}}>
       {Routes}
     </StaticRouter>
   ));
-  res.send(`<html>
+  ctx.body = (`<html>
     <head>
       <title>ssr</title>
     </head>
@@ -29,6 +34,7 @@ app.get('/', function(req, res) {
     <script src='/index.js'></script>
   </html>`);
 });
+app.use(router.routes())
 const server = app.listen(3000, function () {
   const host = server.address().address;
   const port = server.address().port;
